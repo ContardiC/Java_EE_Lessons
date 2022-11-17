@@ -1,28 +1,28 @@
 package servlet;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.RequestDispatcher;
+
 import java.io.IOException;
+import java.sql.SQLException;
 
 import bean.UserBean;
 import db.DBManager;
 
 /**
- * Servlet implementation class RegisterServlet
+ * Servlet implementation class LoginServlet
  */
-public class RegisterServlet extends HttpServlet {
+public class LoginServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public RegisterServlet() {
+    public LoginServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -40,27 +40,21 @@ public class RegisterServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		doGet(request, response);
+		//doGet(request, response);
+		String email = request.getParameter("email");
+		String password = request.getParameter("password");
 		try {
-			// DbManager.testConnection();
-			String firstName = request.getParameter("first-name");
-			String lastName = request.getParameter("last-name");;
-		    String email = request.getParameter("email");
-			String password = request.getParameter("password");
-			UserBean user=new UserBean();
-			user.setFirstName(firstName);
-			user.setLastName(lastName);
-			user.setEmail(email);
-			user.setPassword(password);
-			DBManager dbManager=new DBManager();
-			dbManager.insertUser(user);
-			ServletContext sc = request.getSession().getServletContext();
-			RequestDispatcher rd = sc.getRequestDispatcher("/insert-ok.jsp");
-			rd.forward(request, response);
-		} catch (Exception e) {
+			UserBean userBean=DBManager.searchUser(email,password);
+			if(userBean.getEmail()==null) {
+				response.getWriter().append("Nessun utente con queste credenziali").append(request.getContextPath());
+			}else {
+				HttpSession session=request.getSession();
+				session.setAttribute("email",userBean.getEmail());
+				response.sendRedirect("home.jsp");
+			}
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-
 }
